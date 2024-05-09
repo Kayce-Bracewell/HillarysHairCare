@@ -2,6 +2,7 @@ using HillarysHairCare.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using HillarysHairCare.Models.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,5 +28,42 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Endpoint to get all appointments and include any related data
+app.MapGet("/api/appointments", (HillarysHairCareDbContext db) =>
+{
+    return db.Appointments
+    .Select(a => new AppointmentDTO
+    {
+        Id = a.Id,
+        StylistId = a.StylistId,
+        Stylist = new StylistDTO
+        {
+            Id = a.Stylist.Id,
+            Name = a.Stylist.Name,
+            IsActive = a.Stylist.IsActive
+        },
+        CustomerId = a.CustomerId,
+        Customer = new CustomerDTO
+        {
+            Id = a.Customer.Id,
+            Name = a.Customer.Name,
+            Phone = a.Customer.Phone,
+            Email = a.Customer.Email
+        }
+    });
+});
+
+// Endpoint to get all services
+app.MapGet("/api/services", (HillarysHairCareDbContext db) =>
+{
+    return db.Services
+    .Select(s => new ServiceDTO
+    {
+        Id = s.Id,
+        Name = s.Name,
+        Price = s.Price
+    });
+});
 
 app.Run();
